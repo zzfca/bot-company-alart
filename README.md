@@ -49,7 +49,7 @@ npm start
 Open:
 
 ```text
-http://127.0.0.1:3000
+http://127.0.0.1:3900
 ```
 
 ## Docker Build
@@ -65,7 +65,7 @@ Run it:
 ```bash
 docker run -d \
   --name bot-company-alart \
-  -p 3000:3000 \
+  -p 3900:3900 \
   -v bot-company-alart-data:/data \
   -e ADMIN_PASSWORD='change-me' \
   -e SESSION_SECRET='replace-with-a-long-random-string' \
@@ -75,7 +75,7 @@ docker run -d \
 Open:
 
 ```text
-http://SERVER_IP:3000
+http://SERVER_IP:3900
 ```
 
 ## Docker Compose
@@ -122,7 +122,7 @@ docker compose up -d --build
 Then open:
 
 ```text
-http://SERVER_IP:3000
+http://SERVER_IP:3900
 ```
 
 ## Deploy From A Published Docker Image
@@ -140,7 +140,7 @@ services:
   app:
     image: ghcr.io/zzfca/bot-company-alart:latest
     ports:
-      - "3000:3000"
+      - "3900:3900"
     environment:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
       SESSION_SECRET: ${SESSION_SECRET:-change-this-session-secret}
@@ -179,7 +179,7 @@ Back up the `data` directory before moving servers or upgrading.
 
 | Name | Required | Default | Description |
 | --- | --- | --- | --- |
-| `PORT` | No | `3000` | HTTP port inside container |
+| `PORT` | No | `3900` | HTTP port inside container |
 | `ADMIN_PASSWORD` | No | `admin123` | Initial admin password for first startup |
 | `SESSION_SECRET` | Yes | development fallback | Express session signing secret |
 | `DB_PATH` | No | `/data/database.sqlite` in Docker | SQLite database path |

@@ -3,10 +3,10 @@ services:
     image: bot-company-alart:latest
     build: .
     ports:
-      - "3000:3000"
+      - "3900:3900"
     environment:
       NODE_ENV: production
-      PORT: 3000
+      PORT: 3900
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
       SESSION_SECRET: ${SESSION_SECRET:-change-this-session-secret}
       DB_PATH: /data/database.sqlite
