@@ -111,7 +111,7 @@ sudo apt update
 sudo apt install -y git docker.io docker-compose-plugin
 sudo systemctl enable --now docker
 
-git clone https://github.com/YOUR_GITHUB_USER/bot-company-alart.git
+git clone https://github.com/zzfca/bot-company-alart.git
 cd bot-company-alart
 cp .env.example .env
 nano .env
@@ -130,7 +130,7 @@ http://SERVER_IP:3000
 After pushing this repository to GitHub, the included GitHub Actions workflow publishes an image to GitHub Container Registry:
 
 ```text
-ghcr.io/YOUR_GITHUB_USER/bot-company-alart:latest
+ghcr.io/zzfca/bot-company-alart:latest
 ```
 
 On Ubuntu, create a `docker-compose.yml` file:
@@ -138,7 +138,7 @@ On Ubuntu, create a `docker-compose.yml` file:
 ```yaml
 services:
   app:
-    image: ghcr.io/YOUR_GITHUB_USER/bot-company-alart:latest
+    image: ghcr.io/zzfca/bot-company-alart:latest
     ports:
       - "3000:3000"
     environment:
