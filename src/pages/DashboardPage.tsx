@@ -90,7 +90,7 @@ export default function DashboardPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <Link to="/companies" className="block bg-white rounded-xl border border-slate-200 p-6 hover:border-teal-200 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-500">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
               <Building2 className="w-6 h-6 text-blue-600" />
@@ -100,8 +100,8 @@ export default function DashboardPage() {
               <p className="text-sm text-slate-500">Total Companies</p>
             </div>
           </div>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-6">
+        </Link>
+        <Link to="/companies" className="block bg-white rounded-xl border border-slate-200 p-6 hover:border-red-200 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-red-500">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
               <AlertTriangle className="w-6 h-6 text-red-600" />
@@ -111,8 +111,8 @@ export default function DashboardPage() {
               <p className="text-sm text-slate-500">Overdue</p>
             </div>
           </div>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-6">
+        </Link>
+        <Link to="/companies" className="block bg-white rounded-xl border border-slate-200 p-6 hover:border-amber-200 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-amber-500">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
               <Clock className="w-6 h-6 text-amber-600" />
@@ -122,7 +122,7 @@ export default function DashboardPage() {
               <p className="text-sm text-slate-500">Due in 30 Days</p>
             </div>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Upcoming deadlines */}
@@ -146,7 +146,7 @@ export default function DashboardPage() {
             {upcomingItems.map((item, i) => {
               const badge = getStatusBadge(item.date);
               return (
-                <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                <Link key={i} to={`/companies/${item.company.id}`} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                   <div className="flex items-center gap-4">
                     <div className={`w-2 h-2 rounded-full ${
                       item.days < 0 ? 'bg-red-500' : item.days <= 7 ? 'bg-red-500' : 'bg-amber-500'
@@ -164,7 +164,7 @@ export default function DashboardPage() {
                       </span>
                     )}
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

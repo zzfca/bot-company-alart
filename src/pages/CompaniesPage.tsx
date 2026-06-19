@@ -32,7 +32,8 @@ export default function CompaniesPage() {
 
   const filtered = data.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
-    (c.registration_number && c.registration_number.toLowerCase().includes(search.toLowerCase()))
+    (c.registration_number && c.registration_number.toLowerCase().includes(search.toLowerCase())) ||
+    (c.notes && c.notes.toLowerCase().includes(search.toLowerCase()))
   );
 
   if (loading) {
@@ -100,6 +101,9 @@ export default function CompaniesPage() {
                   <tr key={company.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-medium text-slate-900">{company.name}</div>
+                      {company.notes && (
+                        <div className="mt-1 max-w-xs text-xs text-slate-500 leading-relaxed line-clamp-2">{company.notes}</div>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-slate-600">{company.registration_number || '—'}</td>
                     <td className="px-6 py-4 text-slate-600">{formatDate(company.registration_date)}</td>

@@ -11,9 +11,31 @@ import {
   AlertTriangle,
   Receipt,
   Clock,
+  FileCheck,
 } from 'lucide-react';
 
-function StatusCard({ title, date, type }: { title: string; date: string | null; type: string }) {
+type FilingType = 'annual_return' | 'filing' | 'gst_return';
+
+function StatusCard({
+  title,
+  date,
+  type,
+  filingType,
+  filingDate,
+  saving,
+  onFile,
+}: {
+  title: string;
+  date: string | null;
+  type: string;
+  filingType: FilingType;
+  filingDate: string;
+  saving: boolean;
+  onFile: (type: FilingType, date: string) => Promise<void>;
+}) {
+  const [selectedDate, setSelectedDate] = useState(filingDate || new Date().toISOString().split('T')[0]);
+  const [editing, setEditing] = useState(false);
+
   if (!date) return null;
   const days = getDaysUntil(date);
   const isOverdue = days < 0;
@@ -47,6 +69,46 @@ function StatusCard({ title, date, type }: { title: string; date: string | null;
       }`}>
         {isOverdue ? `${Math.abs(days)} days overdue` : isCritical ? 'Due very soon' : isWarning ? 'Due within 30 days' : 'On track'}
       </p>
+      {editing ? (
+        <div className="mt-4 space-y-2">
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={e => setSelectedDate(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+          />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={saving || !selectedDate}
+              onClick={async () => {
+                await onFile(filingType, selectedDate);
+                setEditing(false);
+              }}
+              className="inline-flex items-center justify-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <FileCheck className="w-3.5 h-3.5" />
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className="text-xs font-medium text-slate-500 hover:text-slate-700 px-2 py-1.5"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="inline-flex items-center gap-1.5 mt-4 text-xs font-medium text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors"
+        >
+          <FileCheck className="w-3.5 h-3.5" />
+          File
+        </button>
+      )}
     </div>
   );
 }
@@ -58,6 +120,7 @@ export default function CompanyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [filingSaving, setFilingSaving] = useState<FilingType | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -75,6 +138,31 @@ export default function CompanyDetailPage() {
       navigate('/companies');
     } catch {
       setDeleting(false);
+    }
+  };
+
+  const handleFile = async (type: FilingType, filingDate: string) => {
+    if (!company) return;
+    setFilingSaving(type);
+    const update = {
+      name: company.name,
+      registration_number: company.registration_number,
+      address: company.address,
+      registration_date: company.registration_date,
+      has_gst: company.has_gst,
+      gst_number: company.gst_number,
+      gst_period: company.gst_period,
+      last_filing_date: type === 'filing' ? filingDate : company.last_filing_date,
+      last_annual_return_date: type === 'annual_return' ? filingDate : company.last_annual_return_date,
+      last_gst_return_date: type === 'gst_return' ? filingDate : company.last_gst_return_date,
+      notes: company.notes,
+    };
+
+    try {
+      const updated = await companies.update(company.id, update);
+      setCompany(updated);
+    } finally {
+      setFilingSaving(null);
     }
   };
 
@@ -152,10 +240,10 @@ export default function CompanyDetailPage() {
       <div className="space-y-4">
         <h2 className="text-sm font-medium text-slate-500 uppercase tracking-wide">Upcoming Deadlines</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatusCard title="Annual Return" date={company.next_annual_return_date} type="annual" />
-          <StatusCard title="Annual Filing" date={company.next_filing_date} type="filing" />
+          <StatusCard title="Annual Return" date={company.next_annual_return_date} type="annual" filingType="annual_return" filingDate={company.last_annual_return_date || ''} saving={filingSaving === 'annual_return'} onFile={handleFile} />
+          <StatusCard title="Annual Filing" date={company.next_filing_date} type="filing" filingType="filing" filingDate={company.last_filing_date || ''} saving={filingSaving === 'filing'} onFile={handleFile} />
           {company.has_gst && (
-            <StatusCard title="GST Return" date={company.next_gst_return_date} type="gst" />
+            <StatusCard title="GST Return" date={company.next_gst_return_date} type="gst" filingType="gst_return" filingDate={company.last_gst_return_date || ''} saving={filingSaving === 'gst_return'} onFile={handleFile} />
           )}
         </div>
       </div>
