@@ -9,14 +9,15 @@ import {
   Clock,
 } from 'lucide-react';
 import { getDaysUntil } from '../lib/dates';
+import { useLanguage } from '../context/LanguageContext';
 
-function getStatusBadge(date: string | null) {
+function getStatusBadge(date: string | null, t: ReturnType<typeof useLanguage>['t']) {
   if (!date) return null;
   const days = getDaysUntil(date);
-  if (days < 0) return { text: 'Overdue', color: 'bg-red-100 text-red-700' };
-  if (days <= 7) return { text: `${days}d`, color: 'bg-red-100 text-red-700' };
-  if (days <= 30) return { text: `${days}d`, color: 'bg-amber-100 text-amber-700' };
-  return { text: `${days}d`, color: 'bg-green-100 text-green-700' };
+  if (days < 0) return { text: t('overdue'), color: 'bg-red-100 text-red-700' };
+  if (days <= 7) return { text: `${days}${t('daysShort')}`, color: 'bg-red-100 text-red-700' };
+  if (days <= 30) return { text: `${days}${t('daysShort')}`, color: 'bg-amber-100 text-amber-700' };
+  return { text: `${days}${t('daysShort')}`, color: 'bg-green-100 text-green-700' };
 }
 
 function getUrgencyPriority(date: string | null): number {
@@ -31,6 +32,7 @@ function getUrgencyPriority(date: string | null): number {
 export default function DashboardPage() {
   const [data, setData] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   useEffect(() => {
     companies.list()
@@ -55,15 +57,15 @@ export default function DashboardPage() {
     const items: { company: Company; type: string; label: string; date: string; days: number }[] = [];
     if (c.next_annual_return_date) {
       const days = getDaysUntil(c.next_annual_return_date);
-      if (days <= 30) items.push({ company: c, type: 'annual_return', label: 'Annual Return', date: c.next_annual_return_date, days });
+      if (days <= 30) items.push({ company: c, type: 'annual_return', label: t('annualReturn'), date: c.next_annual_return_date, days });
     }
     if (c.next_filing_date) {
       const days = getDaysUntil(c.next_filing_date);
-      if (days <= 30) items.push({ company: c, type: 'filing', label: 'Annual Filing', date: c.next_filing_date, days });
+      if (days <= 30) items.push({ company: c, type: 'filing', label: t('annualFiling'), date: c.next_filing_date, days });
     }
     if (c.has_gst && c.next_gst_return_date) {
       const days = getDaysUntil(c.next_gst_return_date);
-      if (days <= 30) items.push({ company: c, type: 'gst_return', label: 'GST Return', date: c.next_gst_return_date, days });
+      if (days <= 30) items.push({ company: c, type: 'gst_return', label: t('gstReturn'), date: c.next_gst_return_date, days });
     }
     return items;
   }).sort((a, b) => {
@@ -84,8 +86,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-        <p className="text-sm text-slate-500 mt-1">Overview of your company compliance status</p>
+        <h1 className="text-2xl font-bold text-slate-900">{t('dashboard')}</h1>
+        <p className="text-sm text-slate-500 mt-1">{t('dashboardSubtitle')}</p>
       </div>
 
       {/* Stats */}
@@ -97,7 +99,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-slate-900">{total}</p>
-              <p className="text-sm text-slate-500">Total Companies</p>
+              <p className="text-sm text-slate-500">{t('totalCompanies')}</p>
             </div>
           </div>
         </Link>
@@ -108,7 +110,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-slate-900">{overdue}</p>
-              <p className="text-sm text-slate-500">Overdue</p>
+              <p className="text-sm text-slate-500">{t('overdue')}</p>
             </div>
           </div>
         </Link>
@@ -119,7 +121,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-slate-900">{warning}</p>
-              <p className="text-sm text-slate-500">Due in 30 Days</p>
+              <p className="text-sm text-slate-500">{t('dueIn30Days')}</p>
             </div>
           </div>
         </Link>
@@ -130,21 +132,21 @@ export default function DashboardPage() {
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <CalendarDays className="w-5 h-5 text-slate-500" />
-            <h2 className="font-semibold text-slate-900">Upcoming Deadlines</h2>
+            <h2 className="font-semibold text-slate-900">{t('upcomingDeadlines')}</h2>
           </div>
           <Link to="/companies" className="text-sm text-teal-600 hover:text-teal-700 flex items-center gap-1">
-            View All <ArrowRight className="w-4 h-4" />
+            {t('viewAll')} <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
         {upcomingItems.length === 0 ? (
           <div className="px-6 py-12 text-center">
-            <p className="text-slate-400 text-sm">No upcoming deadlines in the next 30 days</p>
+            <p className="text-slate-400 text-sm">{t('noUpcomingDeadlines')}</p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
             {upcomingItems.map((item, i) => {
-              const badge = getStatusBadge(item.date);
+              const badge = getStatusBadge(item.date, t);
               return (
                 <Link key={i} to={`/companies/${item.company.id}`} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                   <div className="flex items-center gap-4">

@@ -8,10 +8,12 @@ import CompanyFormPage from './pages/CompanyFormPage';
 import CompanyDetailPage from './pages/CompanyDetailPage';
 import SettingsPage from './pages/SettingsPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import { LanguageProvider } from './context/LanguageContext';
 
 function App() {
   return (
-    <AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -27,7 +29,8 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }
 

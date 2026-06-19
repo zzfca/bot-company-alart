@@ -13,6 +13,7 @@ import {
   Clock,
   FileCheck,
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 type FilingType = 'annual_return' | 'filing' | 'gst_return';
 
@@ -24,6 +25,7 @@ function StatusCard({
   filingDate,
   saving,
   onFile,
+  t,
 }: {
   title: string;
   date: string | null;
@@ -32,6 +34,7 @@ function StatusCard({
   filingDate: string;
   saving: boolean;
   onFile: (type: FilingType, date: string) => Promise<void>;
+  t: ReturnType<typeof useLanguage>['t'];
 }) {
   const [selectedDate, setSelectedDate] = useState(filingDate || new Date().toISOString().split('T')[0]);
   const [editing, setEditing] = useState(false);
@@ -54,20 +57,20 @@ function StatusCard({
           <span className="text-sm font-medium text-slate-600">{title}</span>
         </div>
         {isOverdue ? (
-          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-red-100 text-red-700">Overdue</span>
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-red-100 text-red-700">{t('overdue')}</span>
         ) : isCritical ? (
-          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-red-100 text-red-700">{days} days</span>
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-red-100 text-red-700">{days} {t('days')}</span>
         ) : isWarning ? (
-          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">{days} days</span>
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">{days} {t('days')}</span>
         ) : (
-          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-700">{days} days</span>
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-700">{days} {t('days')}</span>
         )}
       </div>
       <p className="text-lg font-semibold text-slate-900">{date}</p>
       <p className={`text-sm mt-1 ${
         isOverdue ? 'text-red-600' : isCritical ? 'text-red-600' : isWarning ? 'text-amber-600' : 'text-slate-500'
       }`}>
-        {isOverdue ? `${Math.abs(days)} days overdue` : isCritical ? 'Due very soon' : isWarning ? 'Due within 30 days' : 'On track'}
+        {isOverdue ? `${Math.abs(days)} ${t('daysOverdue')}` : isCritical ? t('dueVerySoon') : isWarning ? t('dueWithin30Days') : t('onTrack')}
       </p>
       {editing ? (
         <div className="mt-4 space-y-2">
@@ -88,14 +91,14 @@ function StatusCard({
               className="inline-flex items-center justify-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
             >
               <FileCheck className="w-3.5 h-3.5" />
-              {saving ? 'Saving...' : 'Save'}
+              {saving ? t('saving') : t('save')}
             </button>
             <button
               type="button"
               onClick={() => setEditing(false)}
               className="text-xs font-medium text-slate-500 hover:text-slate-700 px-2 py-1.5"
             >
-              Cancel
+              {t('cancel')}
             </button>
           </div>
         </div>
@@ -106,7 +109,7 @@ function StatusCard({
           className="inline-flex items-center gap-1.5 mt-4 text-xs font-medium text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors"
         >
           <FileCheck className="w-3.5 h-3.5" />
-          File
+          {t('file')}
         </button>
       )}
     </div>
@@ -121,6 +124,7 @@ export default function CompanyDetailPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [filingSaving, setFilingSaving] = useState<FilingType | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!id) return;
@@ -177,7 +181,7 @@ export default function CompanyDetailPage() {
   if (!company) {
     return (
       <div className="text-center py-12">
-        <p className="text-slate-500">Company not found</p>
+        <p className="text-slate-500">{t('companyNotFound')}</p>
       </div>
     );
   }
@@ -189,7 +193,7 @@ export default function CompanyDetailPage() {
         className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Companies
+        {t('backToCompanies')}
       </button>
 
       {/* Header */}
@@ -208,7 +212,7 @@ export default function CompanyDetailPage() {
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                   company.has_gst ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-600'
                 }`}>
-                  GST {company.has_gst ? 'Registered' : 'Not Registered'}
+                  {company.has_gst ? t('gstRegistered') : t('gstNotRegistered')}
                 </span>
               </div>
             </div>
@@ -219,14 +223,14 @@ export default function CompanyDetailPage() {
               className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
             >
               <Edit className="w-4 h-4" />
-              Edit
+              {t('edit')}
             </Link>
             <button
               onClick={() => setDeleteOpen(true)}
               className="inline-flex items-center gap-2 bg-white border border-red-200 hover:bg-red-50 text-red-600 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
             >
               <Trash2 className="w-4 h-4" />
-              Delete
+              {t('delete')}
             </button>
           </div>
         </div>
@@ -238,12 +242,12 @@ export default function CompanyDetailPage() {
 
       {/* Next deadlines */}
       <div className="space-y-4">
-        <h2 className="text-sm font-medium text-slate-500 uppercase tracking-wide">Upcoming Deadlines</h2>
+        <h2 className="text-sm font-medium text-slate-500 uppercase tracking-wide">{t('upcomingDeadlines')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatusCard title="Annual Return" date={company.next_annual_return_date} type="annual" filingType="annual_return" filingDate={company.last_annual_return_date || ''} saving={filingSaving === 'annual_return'} onFile={handleFile} />
-          <StatusCard title="Annual Filing" date={company.next_filing_date} type="filing" filingType="filing" filingDate={company.last_filing_date || ''} saving={filingSaving === 'filing'} onFile={handleFile} />
+          <StatusCard title={t('annualReturn')} date={company.next_annual_return_date} type="annual" filingType="annual_return" filingDate={company.last_annual_return_date || ''} saving={filingSaving === 'annual_return'} onFile={handleFile} t={t} />
+          <StatusCard title={t('annualFiling')} date={company.next_filing_date} type="filing" filingType="filing" filingDate={company.last_filing_date || ''} saving={filingSaving === 'filing'} onFile={handleFile} t={t} />
           {company.has_gst && (
-            <StatusCard title="GST Return" date={company.next_gst_return_date} type="gst" filingType="gst_return" filingDate={company.last_gst_return_date || ''} saving={filingSaving === 'gst_return'} onFile={handleFile} />
+            <StatusCard title={t('gstReturn')} date={company.next_gst_return_date} type="gst" filingType="gst_return" filingDate={company.last_gst_return_date || ''} saving={filingSaving === 'gst_return'} onFile={handleFile} t={t} />
           )}
         </div>
       </div>
@@ -251,42 +255,42 @@ export default function CompanyDetailPage() {
       {/* Details */}
       <div className="bg-white rounded-xl border border-slate-200">
         <div className="px-6 py-4 border-b border-slate-200">
-          <h2 className="font-semibold text-slate-900">Company Details</h2>
+          <h2 className="font-semibold text-slate-900">{t('companyDetails')}</h2>
         </div>
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <p className="text-sm text-slate-500">Registration Date</p>
+            <p className="text-sm text-slate-500">{t('registrationDate')}</p>
             <p className="text-sm font-medium text-slate-900 mt-1">{formatDate(company.registration_date)}</p>
           </div>
           {company.gst_number && (
             <div>
-              <p className="text-sm text-slate-500">GST Number</p>
+              <p className="text-sm text-slate-500">{t('gstNumber')}</p>
               <p className="text-sm font-medium text-slate-900 mt-1">{company.gst_number}</p>
             </div>
           )}
           {company.gst_period && (
             <div>
-              <p className="text-sm text-slate-500">GST Period</p>
+              <p className="text-sm text-slate-500">{t('gstPeriod')}</p>
               <p className="text-sm font-medium text-slate-900 mt-1 capitalize">{company.gst_period}</p>
             </div>
           )}
           <div>
-            <p className="text-sm text-slate-500">Last Annual Return</p>
+            <p className="text-sm text-slate-500">{t('lastAnnualReturn')}</p>
             <p className="text-sm font-medium text-slate-900 mt-1">{formatDate(company.last_annual_return_date)}</p>
           </div>
           <div>
-            <p className="text-sm text-slate-500">Last Annual Filing</p>
+            <p className="text-sm text-slate-500">{t('lastAnnualFiling')}</p>
             <p className="text-sm font-medium text-slate-900 mt-1">{formatDate(company.last_filing_date)}</p>
           </div>
           {company.has_gst && (
             <div>
-              <p className="text-sm text-slate-500">Last GST Return</p>
+              <p className="text-sm text-slate-500">{t('lastGstReturn')}</p>
               <p className="text-sm font-medium text-slate-900 mt-1">{formatDate(company.last_gst_return_date)}</p>
             </div>
           )}
           {company.notes && (
             <div className="md:col-span-2">
-              <p className="text-sm text-slate-500">Notes</p>
+              <p className="text-sm text-slate-500">{t('notes')}</p>
               <p className="text-sm font-medium text-slate-900 mt-1">{company.notes}</p>
             </div>
           )}
@@ -301,17 +305,17 @@ export default function CompanyDetailPage() {
               <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-red-600" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900">Delete Company?</h3>
+              <h3 className="text-lg font-semibold text-slate-900">{t('deleteCompany')}</h3>
             </div>
             <p className="text-sm text-slate-600 mb-6">
-              Are you sure you want to delete <strong>{company.name}</strong>? This action cannot be undone.
+              {t('deleteConfirm')} <strong>{company.name}</strong>? {t('deleteCannotUndo')}
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setDeleteOpen(false)}
                 className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 rounded-lg"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={handleDelete}
@@ -323,7 +327,7 @@ export default function CompanyDetailPage() {
                 ) : (
                   <Trash2 className="w-4 h-4" />
                 )}
-                {deleting ? 'Deleting...' : 'Delete'}
+                {deleting ? t('deleting') : t('delete')}
               </button>
             </div>
           </div>

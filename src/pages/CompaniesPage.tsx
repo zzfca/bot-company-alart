@@ -8,20 +8,22 @@ import {
   Building2,
   ArrowRight,
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
-function getStatusBadge(date: string | null) {
+function getStatusBadge(date: string | null, t: ReturnType<typeof useLanguage>['t']) {
   if (!date) return null;
   const days = getDaysUntil(date);
-  if (days < 0) return { text: 'Overdue', color: 'bg-red-100 text-red-700' };
-  if (days <= 7) return { text: `${days}d`, color: 'bg-red-100 text-red-700' };
-  if (days <= 30) return { text: `${days}d`, color: 'bg-amber-100 text-amber-700' };
-  return { text: `${days}d`, color: 'bg-green-100 text-green-700' };
+  if (days < 0) return { text: t('overdue'), color: 'bg-red-100 text-red-700' };
+  if (days <= 7) return { text: `${days}${t('daysShort')}`, color: 'bg-red-100 text-red-700' };
+  if (days <= 30) return { text: `${days}${t('daysShort')}`, color: 'bg-amber-100 text-amber-700' };
+  return { text: `${days}${t('daysShort')}`, color: 'bg-green-100 text-green-700' };
 }
 
 export default function CompaniesPage() {
   const [data, setData] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const { t } = useLanguage();
 
   useEffect(() => {
     companies.list()
@@ -48,15 +50,15 @@ export default function CompaniesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Companies</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage your BC companies and compliance deadlines</p>
+          <h1 className="text-2xl font-bold text-slate-900">{t('companies')}</h1>
+          <p className="text-sm text-slate-500 mt-1">{t('manageCompanies')}</p>
         </div>
         <Link
           to="/companies/new"
           className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Add Company
+          {t('addCompany')}
         </Link>
       </div>
 
@@ -68,7 +70,7 @@ export default function CompaniesPage() {
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search companies..."
+              placeholder={t('searchCompanies')}
               className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
           </div>
@@ -78,7 +80,7 @@ export default function CompaniesPage() {
           <div className="px-6 py-12 text-center">
             <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-4" />
             <p className="text-slate-500 text-sm">
-              {data.length === 0 ? 'No companies yet. Add your first company to get started.' : 'No matching companies found.'}
+              {data.length === 0 ? t('noCompanies') : t('noMatchingCompanies')}
             </p>
           </div>
         ) : (
@@ -86,13 +88,13 @@ export default function CompaniesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 text-slate-600 text-left">
-                  <th className="px-6 py-3 font-medium">Company</th>
-                  <th className="px-6 py-3 font-medium">Reg. Number</th>
-                  <th className="px-6 py-3 font-medium">Reg. Date</th>
-                  <th className="px-6 py-3 font-medium">GST</th>
-                  <th className="px-6 py-3 font-medium">Next Annual Return</th>
-                  <th className="px-6 py-3 font-medium">Next Filing</th>
-                  <th className="px-6 py-3 font-medium">Next GST</th>
+                  <th className="px-6 py-3 font-medium">{t('company')}</th>
+                  <th className="px-6 py-3 font-medium">{t('regNumber')}</th>
+                  <th className="px-6 py-3 font-medium">{t('regDate')}</th>
+                  <th className="px-6 py-3 font-medium">{t('gst')}</th>
+                  <th className="px-6 py-3 font-medium">{t('nextAnnualReturn')}</th>
+                  <th className="px-6 py-3 font-medium">{t('nextFiling')}</th>
+                  <th className="px-6 py-3 font-medium">{t('nextGst')}</th>
                   <th className="px-6 py-3 font-medium"></th>
                 </tr>
               </thead>
@@ -111,15 +113,15 @@ export default function CompaniesPage() {
                       <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                         company.has_gst ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-600'
                       }`}>
-                        {company.has_gst ? 'Yes' : 'No'}
+                        {company.has_gst ? t('yes') : t('no')}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <span className="text-slate-600">{formatDate(company.next_annual_return_date)}</span>
-                        {company.next_annual_return_date && getStatusBadge(company.next_annual_return_date) && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusBadge(company.next_annual_return_date)!.color}`}>
-                            {getStatusBadge(company.next_annual_return_date)!.text}
+                        {company.next_annual_return_date && getStatusBadge(company.next_annual_return_date, t) && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusBadge(company.next_annual_return_date, t)!.color}`}>
+                            {getStatusBadge(company.next_annual_return_date, t)!.text}
                           </span>
                         )}
                       </div>
@@ -127,9 +129,9 @@ export default function CompaniesPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <span className="text-slate-600">{formatDate(company.next_filing_date)}</span>
-                        {company.next_filing_date && getStatusBadge(company.next_filing_date) && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusBadge(company.next_filing_date)!.color}`}>
-                            {getStatusBadge(company.next_filing_date)!.text}
+                        {company.next_filing_date && getStatusBadge(company.next_filing_date, t) && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusBadge(company.next_filing_date, t)!.color}`}>
+                            {getStatusBadge(company.next_filing_date, t)!.text}
                           </span>
                         )}
                       </div>
@@ -137,9 +139,9 @@ export default function CompaniesPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <span className="text-slate-600">{formatDate(company.next_gst_return_date)}</span>
-                        {company.has_gst && company.next_gst_return_date && getStatusBadge(company.next_gst_return_date) && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusBadge(company.next_gst_return_date)!.color}`}>
-                            {getStatusBadge(company.next_gst_return_date)!.text}
+                        {company.has_gst && company.next_gst_return_date && getStatusBadge(company.next_gst_return_date, t) && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusBadge(company.next_gst_return_date, t)!.color}`}>
+                            {getStatusBadge(company.next_gst_return_date, t)!.text}
                           </span>
                         )}
                       </div>

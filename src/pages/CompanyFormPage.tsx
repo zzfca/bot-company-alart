@@ -7,11 +7,13 @@ import {
   ArrowLeft,
   Loader2,
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function CompanyFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = !!id;
+  const { t } = useLanguage();
 
   const [form, setForm] = useState<Partial<Company>>({
     name: '',
@@ -35,9 +37,9 @@ export default function CompanyFormPage() {
     if (!isEdit) return;
     companies.get(Number(id))
       .then(c => setForm(c))
-      .catch(() => setError('Failed to load company'))
+      .catch(() => setError(t('failedToLoadCompany')))
       .finally(() => setLoading(false));
-  }, [id, isEdit]);
+  }, [id, isEdit, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +61,7 @@ export default function CompanyFormPage() {
       }
       navigate('/companies');
     } catch (err: any) {
-      setError(err.message || 'Failed to save');
+      setError(err.message || t('failedToSave'));
       setSaving(false);
     }
   };
@@ -79,14 +81,14 @@ export default function CompanyFormPage() {
         className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Companies
+        {t('backToCompanies')}
       </button>
 
       <div className="bg-white rounded-xl border border-slate-200">
         <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-3">
           <Building2 className="w-5 h-5 text-slate-500" />
           <h1 className="text-lg font-semibold text-slate-900">
-            {isEdit ? 'Edit Company' : 'New Company'}
+            {isEdit ? t('editCompany') : t('newCompany')}
           </h1>
         </div>
 
@@ -101,7 +103,7 @@ export default function CompanyFormPage() {
             {/* Company Name */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Company Name <span className="text-red-500">*</span>
+                {t('companyName')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -114,7 +116,7 @@ export default function CompanyFormPage() {
 
             {/* Registration Number */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Registration Number</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('regNumber')}</label>
               <input
                 type="text"
                 value={form.registration_number || ''}
@@ -126,7 +128,7 @@ export default function CompanyFormPage() {
             {/* Registration Date */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Registration Date <span className="text-red-500">*</span>
+                {t('registrationDate')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
@@ -139,7 +141,7 @@ export default function CompanyFormPage() {
 
             {/* Address */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Address</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('address')}</label>
               <input
                 type="text"
                 value={form.address || ''}
@@ -159,7 +161,7 @@ export default function CompanyFormPage() {
                   className="w-4 h-4 text-teal-600 border-slate-300 rounded focus:ring-teal-500"
                 />
                 <label htmlFor="has_gst" className="text-sm font-medium text-slate-700">
-                  Registered for GST
+                  {t('registeredForGst')}
                 </label>
               </div>
             </div>
@@ -167,7 +169,7 @@ export default function CompanyFormPage() {
             {/* GST Number */}
             {form.has_gst && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">GST Number</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('gstNumber')}</label>
                 <input
                   type="text"
                   value={form.gst_number || ''}
@@ -180,22 +182,22 @@ export default function CompanyFormPage() {
             {/* GST Period */}
             {form.has_gst && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">GST Period</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('gstPeriod')}</label>
                 <select
                   value={form.gst_period || ''}
                   onChange={e => setForm({ ...form, gst_period: e.target.value })}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 >
-                  <option value="">Select period</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="annual">Annual</option>
+                  <option value="">{t('selectPeriod')}</option>
+                  <option value="monthly">{t('monthly')}</option>
+                  <option value="annual">{t('annual')}</option>
                 </select>
               </div>
             )}
 
             {/* Last Annual Return */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Last Annual Return</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('lastAnnualReturn')}</label>
               <input
                 type="date"
                 value={form.last_annual_return_date || ''}
@@ -206,7 +208,7 @@ export default function CompanyFormPage() {
 
             {/* Last Filing */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Last Annual Filing</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('lastAnnualFiling')}</label>
               <input
                 type="date"
                 value={form.last_filing_date || ''}
@@ -218,7 +220,7 @@ export default function CompanyFormPage() {
             {/* Last GST Return */}
             {form.has_gst && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Last GST Return</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('lastGstReturn')}</label>
                 <input
                   type="date"
                   value={form.last_gst_return_date || ''}
@@ -230,7 +232,7 @@ export default function CompanyFormPage() {
 
             {/* Notes */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Notes</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('notes')}</label>
               <textarea
                 value={form.notes || ''}
                 onChange={e => setForm({ ...form, notes: e.target.value })}
@@ -246,7 +248,7 @@ export default function CompanyFormPage() {
               onClick={() => navigate('/companies')}
               className="px-4 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 rounded-lg transition-colors"
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               type="submit"
@@ -254,7 +256,7 @@ export default function CompanyFormPage() {
               className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors disabled:opacity-50"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {saving ? 'Saving...' : 'Save Company'}
+              {saving ? t('saving') : t('saveCompany')}
             </button>
           </div>
         </form>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Building2, Lock } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -9,6 +10,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,7 +21,7 @@ export default function LoginPage() {
       await login(email, password);
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(err.message || t('loginFailed'));
     } finally {
       setLoading(false);
     }
@@ -34,7 +36,7 @@ export default function LoginPage() {
               <Building2 className="w-7 h-7 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-slate-900">BC Tracker</h1>
-            <p className="text-sm text-slate-500 mt-1">Company Compliance Management</p>
+            <p className="text-sm text-slate-500 mt-1">{t('companyComplianceManagement')}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -45,7 +47,7 @@ export default function LoginPage() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('email')}</label>
               <div className="relative">
                 <input
                   type="email"
@@ -59,13 +61,13 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('password')}</label>
               <div className="relative">
                 <input
                   type="password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  placeholder="Enter your password"
+                  placeholder={t('enterPassword')}
                   className="w-full pl-4 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
                   required
                 />
@@ -78,12 +80,12 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? t('signingIn') : t('signIn')}
             </button>
           </form>
 
           <div className="mt-6 text-center text-xs text-slate-400">
-            Default: admin@company.com / admin123
+            {t('defaultLogin')}
           </div>
         </div>
       </div>

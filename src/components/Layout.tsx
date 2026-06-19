@@ -9,15 +9,17 @@ import {
   X,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/companies', label: 'Companies', icon: Building2 },
-  { path: '/settings', label: 'Settings', icon: Settings },
+  { path: '/', labelKey: 'dashboard' as const, icon: LayoutDashboard },
+  { path: '/companies', labelKey: 'companies' as const, icon: Building2 },
+  { path: '/settings', labelKey: 'settings' as const, icon: Settings },
 ];
 
 export default function Layout() {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -32,10 +34,10 @@ export default function Layout() {
       <aside className="hidden md:flex w-64 flex-col bg-white border-r border-slate-200">
         <div className="p-6 border-b border-slate-200">
           <h1 className="text-xl font-bold text-slate-900">BC Tracker</h1>
-          <p className="text-sm text-slate-500 mt-1">Company Compliance</p>
+          <p className="text-sm text-slate-500 mt-1">{t('companyCompliance')}</p>
         </div>
         <nav className="flex-1 p-4 space-y-1">
-          {navItems.map(({ path, label, icon: Icon }) => (
+          {navItems.map(({ path, labelKey, icon: Icon }) => (
             <NavLink
               key={path}
               to={path}
@@ -48,7 +50,7 @@ export default function Layout() {
               }
             >
               <Icon className="w-5 h-5" />
-              {label}
+              {t(labelKey)}
             </NavLink>
           ))}
         </nav>
@@ -59,7 +61,7 @@ export default function Layout() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-slate-900 truncate">{user?.email}</p>
-              <p className="text-xs text-slate-500">Admin</p>
+              <p className="text-xs text-slate-500">{t('admin')}</p>
             </div>
           </div>
           <button
@@ -67,7 +69,7 @@ export default function Layout() {
             className="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
           >
             <LogOut className="w-4 h-4" />
-            Log Out
+            {t('logOut')}
           </button>
         </div>
       </aside>
@@ -84,7 +86,7 @@ export default function Layout() {
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-40 bg-white pt-14">
           <nav className="p-4 space-y-1">
-            {navItems.map(({ path, label, icon: Icon }) => (
+            {navItems.map(({ path, labelKey, icon: Icon }) => (
               <NavLink
                 key={path}
                 to={path}
@@ -96,7 +98,7 @@ export default function Layout() {
                 }
               >
                 <Icon className="w-5 h-5" />
-                {label}
+                {t(labelKey)}
               </NavLink>
             ))}
             <button
@@ -107,7 +109,7 @@ export default function Layout() {
               className="flex items-center gap-3 px-4 py-3 w-full text-sm text-red-600 font-medium"
             >
               <LogOut className="w-5 h-5" />
-              Log Out
+              {t('logOut')}
             </button>
           </nav>
         </div>
