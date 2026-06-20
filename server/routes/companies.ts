@@ -113,6 +113,36 @@ router.delete('/:id', requireAuth, (req, res) => {
   res.json({ success: true });
 });
 
+// Recalculate all companies due dates
+router.post('/recalculate-all', requireAuth, (req, res) => {
+  const allCompanies = db.prepare('SELECT * FROM companies').all() as any[];
+
+  const updateStmt = db.prepare(`
+    UPDATE companies SET
+      next_annual_return_date = ?, next_filing_date = ?, next_gst_return_date = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `);
+
+  const transaction = db.transaction((companies: any[]) => {
+    for (const company of companies) {
+      const dueDates = computeDueDates({
+        registration_date: company.registration_date,
+        last_annual_return_date: company.last_annual_return_date,
+        last_filing_date: company.last_filing_date,
+        last_gst_return_date: company.last_gst_return_date,
+        has_gst: company.has_gst,
+        gst_period: company.gst_period,
+      });
+
+      updateStmt.run(dueDates.nextAnnualReturn, dueDates.nextFiling, dueDates.nextGst, company.id);
+    }
+  });
+
+  transaction(allCompanies);
+
+  res.json({ success: true, updated: allCompanies.length });
+});
+
 // Recalculate due dates
 router.post('/:id/recalculate', requireAuth, (req, res) => {
   const existing = db.prepare('SELECT * FROM companies WHERE id = ?').get(req.params.id) as any;

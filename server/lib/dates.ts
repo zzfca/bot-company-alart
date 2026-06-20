@@ -1,5 +1,12 @@
 import { addMonths, addYears, differenceInDays, startOfDay, isBefore, parseISO } from 'date-fns';
 
+export function formatDateOnly(date: Date): string {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function getNextAnnualReturnDate(registrationDate: string, lastAnnualReturnDate?: string | null): string {
   const today = startOfDay(new Date());
   const regDate = parseISO(registrationDate);
@@ -12,22 +19,25 @@ export function getNextAnnualReturnDate(registrationDate: string, lastAnnualRetu
     candidate = new Date(thisYear + 1, regDate.getMonth(), regDate.getDate());
   }
 
-  return candidate.toISOString().split('T')[0];
+  return formatDateOnly(candidate);
 }
 
 export function getNextFilingDate(registrationDate: string, lastFilingDate?: string | null): string {
-  const today = startOfDay(new Date());
   const regDate = parseISO(registrationDate);
-  const lastDate = lastFilingDate ? parseISO(lastFilingDate) : addMonths(regDate, 6);
+  if (!lastFilingDate) {
+    return formatDateOnly(addMonths(regDate, 18));
+  }
 
-  const thisYear = today.getFullYear();
+  const lastDate = parseISO(lastFilingDate);
+
+  const thisYear = startOfDay(new Date()).getFullYear();
   let candidate = addMonths(new Date(thisYear, regDate.getMonth(), regDate.getDate()), 6);
 
   if (isBefore(candidate, lastDate) || candidate <= lastDate) {
     candidate = addMonths(new Date(thisYear + 1, regDate.getMonth(), regDate.getDate()), 6);
   }
 
-  return candidate.toISOString().split('T')[0];
+  return formatDateOnly(candidate);
 }
 
 export function getNextGstReturnDate(lastGstReturnDate: string | null, registrationDate: string, gstPeriod: string | null): string | null {
@@ -44,7 +54,7 @@ export function getNextGstReturnDate(lastGstReturnDate: string | null, registrat
     return null;
   }
 
-  return nextDate.toISOString().split('T')[0];
+  return formatDateOnly(nextDate);
 }
 
 export function computeDueDates(company: {

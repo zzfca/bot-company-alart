@@ -15,6 +15,14 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
+function getTodayDateInputValue() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = `${today.getMonth() + 1}`.padStart(2, '0');
+  const day = `${today.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 type FilingType = 'annual_return' | 'filing' | 'gst_return';
 
 function StatusCard({
@@ -36,7 +44,7 @@ function StatusCard({
   onFile: (type: FilingType, date: string) => Promise<void>;
   t: ReturnType<typeof useLanguage>['t'];
 }) {
-  const [selectedDate, setSelectedDate] = useState(filingDate || new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(filingDate || getTodayDateInputValue());
   const [editing, setEditing] = useState(false);
 
   if (!date) return null;

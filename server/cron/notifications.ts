@@ -1,6 +1,6 @@
 import { schedule } from 'node-cron';
 import { db } from '../db.js';
-import { getDaysUntil } from '../lib/dates.js';
+import { formatDateOnly, getDaysUntil } from '../lib/dates.js';
 import { sendEmail } from '../lib/email.js';
 
 const NOTIFICATION_DAYS = [30, 7];
@@ -28,7 +28,7 @@ async function checkAndSendNotifications() {
   const settings = db.prepare('SELECT email FROM settings WHERE id = 1').get() as any;
   const toEmail = settings?.email || 'admin@company.com';
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = formatDateOnly(new Date());
 
   for (const company of companies) {
     const types: string[] = ['annual_return', 'filing'];
