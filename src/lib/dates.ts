@@ -16,7 +16,7 @@ export function getDaysFromNow(dateStr: string): number {
 
 export function formatDate(dateStr: string | null): string {
   if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleDateString('en-CA', {
+  return parseISO(dateStr).toLocaleDateString('en-CA', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
