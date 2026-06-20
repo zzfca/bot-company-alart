@@ -12,6 +12,15 @@ function rowToCompany(row: any) {
   };
 }
 
+function getFilingHistory(companyId: number) {
+  return db.prepare(`
+    SELECT id, company_id, type, filed_date, recorded_at
+    FROM filing_history
+    WHERE company_id = ?
+    ORDER BY filed_date DESC, recorded_at DESC, id DESC
+  `).all(companyId);
+}
+
 // List all companies
 router.get('/', requireAuth, (req, res) => {
   const rows = db.prepare('SELECT * FROM companies ORDER BY created_at DESC').all() as any[];
@@ -22,7 +31,10 @@ router.get('/', requireAuth, (req, res) => {
 router.get('/:id', requireAuth, (req, res) => {
   const row = db.prepare('SELECT * FROM companies WHERE id = ?').get(req.params.id) as any;
   if (!row) return res.status(404).json({ error: 'Not found' });
-  res.json(rowToCompany(row));
+  res.json({
+    ...rowToCompany(row),
+    filing_history: getFilingHistory(Number(req.params.id)),
+  });
 });
 
 // Create company
@@ -76,12 +88,15 @@ router.put('/:id', requireAuth, (req, res) => {
 
   const hasGst = has_gst ? 1 : 0;
   const regDate = registration_date || existing.registration_date;
+  const resolvedLastFilingDate = last_filing_date ?? existing.last_filing_date;
+  const resolvedLastAnnualReturnDate = last_annual_return_date ?? existing.last_annual_return_date;
+  const resolvedLastGstReturnDate = last_gst_return_date ?? existing.last_gst_return_date;
 
   const dueDates = computeDueDates({
     registration_date: regDate,
-    last_annual_return_date: last_annual_return_date || existing.last_annual_return_date,
-    last_filing_date: last_filing_date || existing.last_filing_date,
-    last_gst_return_date: last_gst_return_date || existing.last_gst_return_date,
+    last_annual_return_date: resolvedLastAnnualReturnDate,
+    last_filing_date: resolvedLastFilingDate,
+    last_gst_return_date: resolvedLastGstReturnDate,
     has_gst: hasGst,
     gst_period: gst_period || existing.gst_period,
   });
@@ -97,14 +112,43 @@ router.put('/:id', requireAuth, (req, res) => {
   `).run(
     name || existing.name, registration_number ?? existing.registration_number, address ?? existing.address, regDate,
     hasGst, hasGst ? (gst_number || null) : null, hasGst ? (gst_period || null) : null,
-    last_filing_date ?? existing.last_filing_date, last_annual_return_date ?? existing.last_annual_return_date, last_gst_return_date ?? existing.last_gst_return_date,
+    resolvedLastFilingDate, resolvedLastAnnualReturnDate, resolvedLastGstReturnDate,
     dueDates.nextAnnualReturn, dueDates.nextFiling, dueDates.nextGst,
     notes ?? existing.notes,
     req.params.id
   );
 
+  const historyInserts: { type: string; filedDate: string }[] = [];
+  if (last_filing_date && last_filing_date !== existing.last_filing_date) {
+    historyInserts.push({ type: 'filing', filedDate: last_filing_date });
+  }
+  if (last_annual_return_date && last_annual_return_date !== existing.last_annual_return_date) {
+    historyInserts.push({ type: 'annual_return', filedDate: last_annual_return_date });
+  }
+  if (last_gst_return_date && last_gst_return_date !== existing.last_gst_return_date) {
+    historyInserts.push({ type: 'gst_return', filedDate: last_gst_return_date });
+  }
+
+  const insertHistoryStmt = db.prepare(`
+    INSERT INTO filing_history (company_id, type, filed_date)
+    SELECT ?, ?, ?
+    WHERE NOT EXISTS (
+      SELECT 1 FROM filing_history
+      WHERE company_id = ?
+        AND type = ?
+        AND filed_date = ?
+    )
+  `);
+
+  for (const entry of historyInserts) {
+    insertHistoryStmt.run(req.params.id, entry.type, entry.filedDate, req.params.id, entry.type, entry.filedDate);
+  }
+
   const row = db.prepare('SELECT * FROM companies WHERE id = ?').get(req.params.id) as any;
-  res.json(rowToCompany(row));
+  res.json({
+    ...rowToCompany(row),
+    filing_history: getFilingHistory(Number(req.params.id)),
+  });
 });
 
 // Delete company
@@ -164,7 +208,10 @@ router.post('/:id/recalculate', requireAuth, (req, res) => {
   `).run(dueDates.nextAnnualReturn, dueDates.nextFiling, dueDates.nextGst, req.params.id);
 
   const row = db.prepare('SELECT * FROM companies WHERE id = ?').get(req.params.id) as any;
-  res.json(rowToCompany(row));
+  res.json({
+    ...rowToCompany(row),
+    filing_history: getFilingHistory(Number(req.params.id)),
+  });
 });
 
 export default router;

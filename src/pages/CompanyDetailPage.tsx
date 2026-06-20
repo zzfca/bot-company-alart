@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { companies, type Company } from '../lib/api';
+import { companies, type Company, type FilingHistoryItem } from '../lib/api';
 import { getDaysUntil, formatDate } from '../lib/dates';
 import {
   Building2,
@@ -12,6 +12,7 @@ import {
   Receipt,
   Clock,
   FileCheck,
+  History,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -24,6 +25,60 @@ function getTodayDateInputValue() {
 }
 
 type FilingType = 'annual_return' | 'filing' | 'gst_return';
+
+function formatDateTime(dateStr: string): string {
+  return new Date(dateStr).toLocaleString('en-CA', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+function FilingHistorySection({
+  title,
+  items,
+  emptyText,
+  t,
+}: {
+  title: string;
+  items: FilingHistoryItem[];
+  emptyText: string;
+  t: ReturnType<typeof useLanguage>['t'];
+}) {
+  return (
+    <div className="bg-slate-50 rounded-lg border border-slate-200 p-4">
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <History className="w-4 h-4 text-slate-500" />
+          <h3 className="text-sm font-semibold text-slate-900 leading-5 break-words">{title}</h3>
+        </div>
+        <span className="shrink-0 text-xs font-medium text-slate-500">{t('totalFiled')}: {items.length}</span>
+      </div>
+
+      {items.length === 0 ? (
+        <p className="text-sm text-slate-500">{emptyText}</p>
+      ) : (
+        <div className="max-h-[360px] space-y-3 overflow-y-auto pr-1">
+          {items.map((item, index) => (
+            <div key={item.id} className="flex items-start justify-between gap-4 border-b border-slate-200 pb-3 last:border-b-0 last:pb-0">
+              <div>
+                <p className="text-xs text-slate-500">{t('filedDate')}</p>
+                <p className="text-sm font-medium text-slate-900 mt-1">{formatDate(item.filed_date)}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-slate-500">{t('recordedAt')}</p>
+                <p className="text-sm text-slate-700 mt-1">{formatDateTime(item.recorded_at)}</p>
+                <p className="text-xs text-slate-400 mt-1">#{items.length - index}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function StatusCard({
   title,
@@ -194,6 +249,11 @@ export default function CompanyDetailPage() {
     );
   }
 
+  const history = company.filing_history || [];
+  const annualReturnHistory = history.filter(item => item.type === 'annual_return');
+  const filingHistory = history.filter(item => item.type === 'filing');
+  const gstHistory = history.filter(item => item.type === 'gst_return');
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <button
@@ -222,6 +282,9 @@ export default function CompanyDetailPage() {
                 }`}>
                   {company.has_gst ? t('gstRegistered') : t('gstNotRegistered')}
                 </span>
+                {company.has_gst && company.gst_number && (
+                  <span className="text-sm text-slate-500">{company.gst_number}</span>
+                )}
               </div>
             </div>
           </div>
@@ -265,10 +328,14 @@ export default function CompanyDetailPage() {
         <div className="px-6 py-4 border-b border-slate-200">
           <h2 className="font-semibold text-slate-900">{t('companyDetails')}</h2>
         </div>
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <div>
             <p className="text-sm text-slate-500">{t('registrationDate')}</p>
             <p className="text-sm font-medium text-slate-900 mt-1">{formatDate(company.registration_date)}</p>
+          </div>
+          <div>
+            <p className="text-sm text-slate-500">{t('regNumber')}</p>
+            <p className="text-sm font-medium text-slate-900 mt-1">{company.registration_number || '—'}</p>
           </div>
           {company.gst_number && (
             <div>
@@ -297,10 +364,38 @@ export default function CompanyDetailPage() {
             </div>
           )}
           {company.notes && (
-            <div className="md:col-span-2">
+            <div className="sm:col-span-2 xl:col-span-4">
               <p className="text-sm text-slate-500">{t('notes')}</p>
               <p className="text-sm font-medium text-slate-900 mt-1">{company.notes}</p>
             </div>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200">
+        <div className="px-6 py-4 border-b border-slate-200">
+          <h2 className="font-semibold text-slate-900">{t('filingHistory')}</h2>
+        </div>
+        <div className={`p-6 grid grid-cols-1 ${company.has_gst ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-4`}>
+          <FilingHistorySection
+            title={t('annualReturnHistory')}
+            items={annualReturnHistory}
+            emptyText={t('noHistory')}
+            t={t}
+          />
+          <FilingHistorySection
+            title={t('annualFilingHistory')}
+            items={filingHistory}
+            emptyText={t('noHistory')}
+            t={t}
+          />
+          {company.has_gst && (
+            <FilingHistorySection
+              title={t('gstHistory')}
+              items={gstHistory}
+              emptyText={t('noHistory')}
+              t={t}
+            />
           )}
         </div>
       </div>

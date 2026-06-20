@@ -48,6 +48,15 @@ export interface Company {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  filing_history?: FilingHistoryItem[];
+}
+
+export interface FilingHistoryItem {
+  id: number;
+  company_id: number;
+  type: 'annual_return' | 'filing' | 'gst_return';
+  filed_date: string;
+  recorded_at: string;
 }
 
 export const companies = {

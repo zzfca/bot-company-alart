@@ -57,6 +57,17 @@ function initDb() {
     )
   `);
 
+  // Filing history
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS filing_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+      type TEXT NOT NULL,
+      filed_date TEXT NOT NULL,
+      recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   // Settings table (SMTP config)
   db.exec(`
     CREATE TABLE IF NOT EXISTS settings (
@@ -83,6 +94,46 @@ function initDb() {
   if (settingsCount.count === 0) {
     db.prepare('INSERT INTO settings (id) VALUES (1)').run();
   }
+
+  // Backfill one history record from legacy "last filed" fields where missing.
+  db.prepare(`
+    INSERT INTO filing_history (company_id, type, filed_date, recorded_at)
+    SELECT c.id, 'annual_return', c.last_annual_return_date, COALESCE(c.updated_at, c.created_at, CURRENT_TIMESTAMP)
+    FROM companies c
+    WHERE c.last_annual_return_date IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1 FROM filing_history fh
+        WHERE fh.company_id = c.id
+          AND fh.type = 'annual_return'
+          AND fh.filed_date = c.last_annual_return_date
+      )
+  `).run();
+
+  db.prepare(`
+    INSERT INTO filing_history (company_id, type, filed_date, recorded_at)
+    SELECT c.id, 'filing', c.last_filing_date, COALESCE(c.updated_at, c.created_at, CURRENT_TIMESTAMP)
+    FROM companies c
+    WHERE c.last_filing_date IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1 FROM filing_history fh
+        WHERE fh.company_id = c.id
+          AND fh.type = 'filing'
+          AND fh.filed_date = c.last_filing_date
+      )
+  `).run();
+
+  db.prepare(`
+    INSERT INTO filing_history (company_id, type, filed_date, recorded_at)
+    SELECT c.id, 'gst_return', c.last_gst_return_date, COALESCE(c.updated_at, c.created_at, CURRENT_TIMESTAMP)
+    FROM companies c
+    WHERE c.last_gst_return_date IS NOT NULL
+      AND NOT EXISTS (
+        SELECT 1 FROM filing_history fh
+        WHERE fh.company_id = c.id
+          AND fh.type = 'gst_return'
+          AND fh.filed_date = c.last_gst_return_date
+      )
+  `).run();
 }
 
 initDb();
