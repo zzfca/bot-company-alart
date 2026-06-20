@@ -169,6 +169,20 @@ Common ports:
 
 Use `Send Test Email` after saving SMTP settings. A successful test confirms that scheduled reminder emails can use the same SMTP configuration.
 
+## Due Date Rules
+
+The app calculates compliance dates using these rules:
+
+- Annual Return: due every year on the company registration anniversary.
+- Annual Filing:
+  - If no previous annual filing date has been recorded, the first filing due date is 18 months after the company registration date.
+  - After a filing has been recorded, the next annual filing due date is 6 months after that company's annual return cycle date for the relevant year.
+- GST Return:
+  - Monthly GST: due 1 month after the last GST return date.
+  - Annual GST: due 1 year after the last GST return date.
+
+When the server starts, it automatically recalculates due dates for existing companies using the current rules.
+
 ## Data Persistence
 
 SQLite data is stored at `/data/database.sqlite` inside the container. The provided Compose file maps it to `./data` on the host.
