@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { companies, type Company } from '../lib/api';
 import { getDaysUntil, formatDate } from '../lib/dates';
 import {
@@ -20,6 +20,7 @@ function getStatusBadge(date: string | null, t: ReturnType<typeof useLanguage>['
 }
 
 export default function CompaniesPage() {
+  const navigate = useNavigate();
   const [data, setData] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -100,7 +101,20 @@ export default function CompaniesPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filtered.map(company => (
-                  <tr key={company.id} className="hover:bg-slate-50 transition-colors">
+                  <tr
+                    key={company.id}
+                    className="cursor-pointer hover:bg-slate-50 focus-within:bg-slate-50 transition-colors"
+                    onClick={() => navigate(`/companies/${company.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate(`/companies/${company.id}`);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="link"
+                    aria-label={`View details for ${company.name}`}
+                  >
                     <td className="px-6 py-4">
                       <div className="font-medium text-slate-900">{company.name}</div>
                       {company.notes && (
@@ -147,12 +161,9 @@ export default function CompaniesPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <Link
-                        to={`/companies/${company.id}`}
-                        className="text-teal-600 hover:text-teal-700"
-                      >
+                      <span className="inline-flex text-teal-600">
                         <ArrowRight className="w-4 h-4" />
-                      </Link>
+                      </span>
                     </td>
                   </tr>
                 ))}
