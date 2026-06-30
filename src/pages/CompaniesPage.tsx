@@ -10,8 +10,9 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
-function getStatusBadge(date: string | null, t: ReturnType<typeof useLanguage>['t']) {
+function getStatusBadge(date: string | null, paused: boolean, t: ReturnType<typeof useLanguage>['t']) {
   if (!date) return null;
+  if (paused) return { text: t('paused'), color: 'bg-slate-100 text-slate-500' };
   const days = getDaysUntil(date);
   if (days < 0) return { text: t('overdue'), color: 'bg-red-100 text-red-700' };
   if (days <= 7) return { text: `${days}${t('daysShort')}`, color: 'bg-red-100 text-red-700' };
@@ -132,30 +133,30 @@ export default function CompaniesPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-slate-600">{formatDate(company.next_annual_return_date)}</span>
-                        {company.next_annual_return_date && getStatusBadge(company.next_annual_return_date, t) && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusBadge(company.next_annual_return_date, t)!.color}`}>
-                            {getStatusBadge(company.next_annual_return_date, t)!.text}
+                        <span className={company.annual_return_paused ? "text-slate-400" : "text-slate-600"}>{formatDate(company.next_annual_return_date)}</span>
+                        {company.next_annual_return_date && getStatusBadge(company.next_annual_return_date, !!company.annual_return_paused, t) && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusBadge(company.next_annual_return_date, !!company.annual_return_paused, t)!.color}`}>
+                            {getStatusBadge(company.next_annual_return_date, !!company.annual_return_paused, t)!.text}
                           </span>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-slate-600">{formatDate(company.next_filing_date)}</span>
-                        {company.next_filing_date && getStatusBadge(company.next_filing_date, t) && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusBadge(company.next_filing_date, t)!.color}`}>
-                            {getStatusBadge(company.next_filing_date, t)!.text}
+                        <span className={company.filing_paused ? "text-slate-400" : "text-slate-600"}>{formatDate(company.next_filing_date)}</span>
+                        {company.next_filing_date && getStatusBadge(company.next_filing_date, !!company.filing_paused, t) && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusBadge(company.next_filing_date, !!company.filing_paused, t)!.color}`}>
+                            {getStatusBadge(company.next_filing_date, !!company.filing_paused, t)!.text}
                           </span>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-slate-600">{formatDate(company.next_gst_return_date)}</span>
-                        {company.has_gst && company.next_gst_return_date && getStatusBadge(company.next_gst_return_date, t) && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusBadge(company.next_gst_return_date, t)!.color}`}>
-                            {getStatusBadge(company.next_gst_return_date, t)!.text}
+                        <span className={company.gst_return_paused ? "text-slate-400" : "text-slate-600"}>{formatDate(company.next_gst_return_date)}</span>
+                        {company.has_gst && company.next_gst_return_date && getStatusBadge(company.next_gst_return_date, !!company.gst_return_paused, t) && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusBadge(company.next_gst_return_date, !!company.gst_return_paused, t)!.color}`}>
+                            {getStatusBadge(company.next_gst_return_date, !!company.gst_return_paused, t)!.text}
                           </span>
                         )}
                       </div>
