@@ -214,4 +214,37 @@ router.post('/:id/recalculate', requireAuth, (req, res) => {
   });
 });
 
+// Toggle pause status for a filing type
+router.post('/:id/toggle-pause', requireAuth, (req, res) => {
+  const { type } = req.body;
+
+  if (!['annual_return', 'filing', 'gst_return'].includes(type)) {
+    return res.status(400).json({ error: 'Invalid filing type' });
+  }
+
+  const existing = db.prepare('SELECT * FROM companies WHERE id = ?').get(req.params.id) as any;
+  if (!existing) return res.status(404).json({ error: 'Not found' });
+
+  const columnMap: Record<string, string> = {
+    'annual_return': 'annual_return_paused',
+    'filing': 'filing_paused',
+    'gst_return': 'gst_return_paused',
+  };
+
+  const column = columnMap[type];
+  const currentValue = existing[column] || 0;
+  const newValue = currentValue ? 0 : 1;
+
+  db.prepare(`
+    UPDATE companies SET ${column} = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+  `).run(newValue, req.params.id);
+
+  const row = db.prepare('SELECT * FROM companies WHERE id = ?').get(req.params.id) as any;
+  res.json({
+    ...rowToCompany(row),
+    filing_history: getFilingHistory(Number(req.params.id)),
+  });
+});
+
 export default router;

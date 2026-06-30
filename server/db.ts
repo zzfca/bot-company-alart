@@ -44,6 +44,20 @@ function initDb() {
     )
   `);
 
+  // Add paused columns if they don't exist
+  const tableInfo = db.pragma('table_info(companies)') as any[];
+  const columns = tableInfo.map((col: any) => col.name);
+
+  if (!columns.includes('annual_return_paused')) {
+    db.exec('ALTER TABLE companies ADD COLUMN annual_return_paused INTEGER NOT NULL DEFAULT 0');
+  }
+  if (!columns.includes('filing_paused')) {
+    db.exec('ALTER TABLE companies ADD COLUMN filing_paused INTEGER NOT NULL DEFAULT 0');
+  }
+  if (!columns.includes('gst_return_paused')) {
+    db.exec('ALTER TABLE companies ADD COLUMN gst_return_paused INTEGER NOT NULL DEFAULT 0');
+  }
+
   // Notification logs
   db.exec(`
     CREATE TABLE IF NOT EXISTS notification_logs (

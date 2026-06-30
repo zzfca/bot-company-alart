@@ -23,6 +23,15 @@ function getNotificationTypeField(type: string): string {
   }
 }
 
+function getNotificationPausedField(type: string): string {
+  switch (type) {
+    case 'annual_return': return 'annual_return_paused';
+    case 'filing': return 'filing_paused';
+    case 'gst_return': return 'gst_return_paused';
+    default: return '';
+  }
+}
+
 async function checkAndSendNotifications() {
   const companies = db.prepare('SELECT * FROM companies').all() as any[];
   const settings = db.prepare('SELECT email FROM settings WHERE id = 1').get() as any;
@@ -36,7 +45,13 @@ async function checkAndSendNotifications() {
 
     for (const type of types) {
       const dateField = getNotificationTypeField(type);
+      const pausedField = getNotificationPausedField(type);
       const dueDate = company[dateField];
+      const isPaused = company[pausedField];
+
+      // Skip if paused
+      if (isPaused) continue;
+
       if (!dueDate) continue;
 
       const daysUntil = getDaysUntil(dueDate);

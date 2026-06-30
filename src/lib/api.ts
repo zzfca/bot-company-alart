@@ -45,6 +45,9 @@ export interface Company {
   next_filing_date: string | null;
   next_annual_return_date: string | null;
   next_gst_return_date: string | null;
+  annual_return_paused?: number;
+  filing_paused?: number;
+  gst_return_paused?: number;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -68,6 +71,8 @@ export const companies = {
     api<Company>(`/companies/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: number) => api(`/companies/${id}`, { method: 'DELETE' }),
   recalculate: (id: number) => api<Company>(`/companies/${id}/recalculate`, { method: 'POST' }),
+  togglePause: (id: number, type: 'annual_return' | 'filing' | 'gst_return') =>
+    api<Company>(`/companies/${id}/toggle-pause`, { method: 'POST', body: JSON.stringify({ type }) }),
 };
 
 export interface Settings {

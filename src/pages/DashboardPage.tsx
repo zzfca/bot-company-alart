@@ -43,27 +43,27 @@ export default function DashboardPage() {
 
   const total = data.length;
   const overdue = data.filter(c =>
-    (c.next_annual_return_date && getDaysUntil(c.next_annual_return_date) < 0) ||
-    (c.next_filing_date && getDaysUntil(c.next_filing_date) < 0) ||
-    (c.has_gst && c.next_gst_return_date && getDaysUntil(c.next_gst_return_date) < 0)
+    (!c.annual_return_paused && c.next_annual_return_date && getDaysUntil(c.next_annual_return_date) < 0) ||
+    (!c.filing_paused && c.next_filing_date && getDaysUntil(c.next_filing_date) < 0) ||
+    (!c.gst_return_paused && c.has_gst && c.next_gst_return_date && getDaysUntil(c.next_gst_return_date) < 0)
   ).length;
   const warning = data.filter(c =>
-    (c.next_annual_return_date && getDaysUntil(c.next_annual_return_date) >= 0 && getDaysUntil(c.next_annual_return_date) <= 30) ||
-    (c.next_filing_date && getDaysUntil(c.next_filing_date) >= 0 && getDaysUntil(c.next_filing_date) <= 30) ||
-    (c.has_gst && c.next_gst_return_date && getDaysUntil(c.next_gst_return_date) >= 0 && getDaysUntil(c.next_gst_return_date) <= 30)
+    (!c.annual_return_paused && c.next_annual_return_date && getDaysUntil(c.next_annual_return_date) >= 0 && getDaysUntil(c.next_annual_return_date) <= 30) ||
+    (!c.filing_paused && c.next_filing_date && getDaysUntil(c.next_filing_date) >= 0 && getDaysUntil(c.next_filing_date) <= 30) ||
+    (!c.gst_return_paused && c.has_gst && c.next_gst_return_date && getDaysUntil(c.next_gst_return_date) >= 0 && getDaysUntil(c.next_gst_return_date) <= 30)
   ).length;
 
   const upcomingItems = data.flatMap(c => {
     const items: { company: Company; type: string; label: string; date: string; days: number }[] = [];
-    if (c.next_annual_return_date) {
+    if (!c.annual_return_paused && c.next_annual_return_date) {
       const days = getDaysUntil(c.next_annual_return_date);
       if (days <= 30) items.push({ company: c, type: 'annual_return', label: t('annualReturn'), date: c.next_annual_return_date, days });
     }
-    if (c.next_filing_date) {
+    if (!c.filing_paused && c.next_filing_date) {
       const days = getDaysUntil(c.next_filing_date);
       if (days <= 30) items.push({ company: c, type: 'filing', label: t('annualFiling'), date: c.next_filing_date, days });
     }
-    if (c.has_gst && c.next_gst_return_date) {
+    if (!c.gst_return_paused && c.has_gst && c.next_gst_return_date) {
       const days = getDaysUntil(c.next_gst_return_date);
       if (days <= 30) items.push({ company: c, type: 'gst_return', label: t('gstReturn'), date: c.next_gst_return_date, days });
     }

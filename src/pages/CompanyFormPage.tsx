@@ -201,7 +201,7 @@ export default function CompanyFormPage() {
               <input
                 type="date"
                 value={form.last_annual_return_date || ''}
-                onChange={e => setForm({ ...form, last_annual_return_date: e.target.value || null })}
+                onChange={e => setForm({ ...form, last_annual_return_date: e.target.value || '' })}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
             </div>
@@ -212,7 +212,7 @@ export default function CompanyFormPage() {
               <input
                 type="date"
                 value={form.last_filing_date || ''}
-                onChange={e => setForm({ ...form, last_filing_date: e.target.value || null })}
+                onChange={e => setForm({ ...form, last_filing_date: e.target.value || '' })}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
             </div>
@@ -224,7 +224,7 @@ export default function CompanyFormPage() {
                 <input
                   type="date"
                   value={form.last_gst_return_date || ''}
-                  onChange={e => setForm({ ...form, last_gst_return_date: e.target.value || null })}
+                  onChange={e => setForm({ ...form, last_gst_return_date: e.target.value || '' })}
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
               </div>

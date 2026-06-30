@@ -119,6 +119,9 @@ const translations = {
     passwordChanged: 'Password changed successfully',
     failedToChangePassword: 'Failed to change password',
     changing: 'Changing...',
+    pause: 'Pause',
+    paused: 'Paused',
+    resume: 'Resume',
   },
   zh: {
     dashboard: '仪表盘',
@@ -234,6 +237,9 @@ const translations = {
     passwordChanged: '密码修改成功',
     failedToChangePassword: '修改密码失败',
     changing: '修改中...',
+    pause: '暂停',
+    paused: '已暂停',
+    resume: '恢复',
   },
 } as const;
 

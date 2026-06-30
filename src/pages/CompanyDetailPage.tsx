@@ -13,6 +13,8 @@ import {
   Clock,
   FileCheck,
   History,
+  Pause,
+  Play,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -87,7 +89,9 @@ function StatusCard({
   filingType,
   filingDate,
   saving,
+  paused,
   onFile,
+  onTogglePause,
   t,
 }: {
   title: string;
@@ -96,7 +100,9 @@ function StatusCard({
   filingType: FilingType;
   filingDate: string;
   saving: boolean;
+  paused: boolean;
   onFile: (type: FilingType, date: string) => Promise<void>;
+  onTogglePause: (type: FilingType) => Promise<void>;
   t: ReturnType<typeof useLanguage>['t'];
 }) {
   const [selectedDate, setSelectedDate] = useState(filingDate || getTodayDateInputValue());
@@ -110,6 +116,7 @@ function StatusCard({
 
   return (
     <div className={`bg-white rounded-xl border p-5 ${
+      paused ? 'border-slate-300 opacity-60' :
       isOverdue ? 'border-red-200' : isCritical ? 'border-red-200' : isWarning ? 'border-amber-200' : 'border-slate-200'
     }`}>
       <div className="flex items-center justify-between mb-3">
@@ -118,8 +125,9 @@ function StatusCard({
           {type === 'filing' && <Receipt className="w-4 h-4 text-slate-500" />}
           {type === 'gst' && <Clock className="w-4 h-4 text-slate-500" />}
           <span className="text-sm font-medium text-slate-600">{title}</span>
+          {paused && <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{t('paused')}</span>}
         </div>
-        {isOverdue ? (
+        {!paused && (isOverdue ? (
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-red-100 text-red-700">{t('overdue')}</span>
         ) : isCritical ? (
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-red-100 text-red-700">{days} {t('days')}</span>
@@ -127,14 +135,16 @@ function StatusCard({
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">{days} {t('days')}</span>
         ) : (
           <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-700">{days} {t('days')}</span>
-        )}
+        ))}
       </div>
       <p className="text-lg font-semibold text-slate-900">{date}</p>
-      <p className={`text-sm mt-1 ${
-        isOverdue ? 'text-red-600' : isCritical ? 'text-red-600' : isWarning ? 'text-amber-600' : 'text-slate-500'
-      }`}>
-        {isOverdue ? `${Math.abs(days)} ${t('daysOverdue')}` : isCritical ? t('dueVerySoon') : isWarning ? t('dueWithin30Days') : t('onTrack')}
-      </p>
+      {!paused && (
+        <p className={`text-sm mt-1 ${
+          isOverdue ? 'text-red-600' : isCritical ? 'text-red-600' : isWarning ? 'text-amber-600' : 'text-slate-500'
+        }`}>
+          {isOverdue ? `${Math.abs(days)} ${t('daysOverdue')}` : isCritical ? t('dueVerySoon') : isWarning ? t('dueWithin30Days') : t('onTrack')}
+        </p>
+      )}
       {editing ? (
         <div className="mt-4 space-y-2">
           <input
@@ -166,14 +176,26 @@ function StatusCard({
           </div>
         </div>
       ) : (
-        <button
-          type="button"
-          onClick={() => setEditing(true)}
-          className="inline-flex items-center gap-1.5 mt-4 text-xs font-medium text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors"
-        >
-          <FileCheck className="w-3.5 h-3.5" />
-          {t('file')}
-        </button>
+        <div className="flex items-center gap-2 mt-4">
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            disabled={paused}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <FileCheck className="w-3.5 h-3.5" />
+            {t('file')}
+          </button>
+          <button
+            type="button"
+            onClick={() => onTogglePause(filingType)}
+            disabled={saving}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {paused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+            {paused ? t('resume') : t('pause')}
+          </button>
+        </div>
       )}
     </div>
   );
@@ -227,6 +249,17 @@ export default function CompanyDetailPage() {
 
     try {
       const updated = await companies.update(company.id, update);
+      setCompany(updated);
+    } finally {
+      setFilingSaving(null);
+    }
+  };
+
+  const handleTogglePause = async (type: FilingType) => {
+    if (!company) return;
+    setFilingSaving(type);
+    try {
+      const updated = await companies.togglePause(company.id, type);
       setCompany(updated);
     } finally {
       setFilingSaving(null);
@@ -315,10 +348,43 @@ export default function CompanyDetailPage() {
       <div className="space-y-4">
         <h2 className="text-sm font-medium text-slate-500 uppercase tracking-wide">{t('upcomingDeadlines')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatusCard title={t('annualReturn')} date={company.next_annual_return_date} type="annual" filingType="annual_return" filingDate={company.last_annual_return_date || ''} saving={filingSaving === 'annual_return'} onFile={handleFile} t={t} />
-          <StatusCard title={t('annualFiling')} date={company.next_filing_date} type="filing" filingType="filing" filingDate={company.last_filing_date || ''} saving={filingSaving === 'filing'} onFile={handleFile} t={t} />
+          <StatusCard
+            title={t('annualReturn')}
+            date={company.next_annual_return_date}
+            type="annual"
+            filingType="annual_return"
+            filingDate={company.last_annual_return_date || ''}
+            saving={filingSaving === 'annual_return'}
+            paused={!!company.annual_return_paused}
+            onFile={handleFile}
+            onTogglePause={handleTogglePause}
+            t={t}
+          />
+          <StatusCard
+            title={t('annualFiling')}
+            date={company.next_filing_date}
+            type="filing"
+            filingType="filing"
+            filingDate={company.last_filing_date || ''}
+            saving={filingSaving === 'filing'}
+            paused={!!company.filing_paused}
+            onFile={handleFile}
+            onTogglePause={handleTogglePause}
+            t={t}
+          />
           {company.has_gst && (
-            <StatusCard title={t('gstReturn')} date={company.next_gst_return_date} type="gst" filingType="gst_return" filingDate={company.last_gst_return_date || ''} saving={filingSaving === 'gst_return'} onFile={handleFile} t={t} />
+            <StatusCard
+              title={t('gstReturn')}
+              date={company.next_gst_return_date}
+              type="gst"
+              filingType="gst_return"
+              filingDate={company.last_gst_return_date || ''}
+              saving={filingSaving === 'gst_return'}
+              paused={!!company.gst_return_paused}
+              onFile={handleFile}
+              onTogglePause={handleTogglePause}
+              t={t}
+            />
           )}
         </div>
       </div>
